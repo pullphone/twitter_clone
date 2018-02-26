@@ -25,23 +25,35 @@ func NewPostController(sqlHandler repository.SqlHandler) *PostController {
 
 func (controller *PostController) Create(c Context) {
 	post := entity.Post{}
+	response := entity.ResponseResult{}
+
 	c.Bind(&post)
 	id, err := controller.Service.Add(post)
 	if err != nil {
-		c.JSON(500, err)
+		response.Result = false
+		response.Data = entity.Error{
+			ErrorName: "CANNOT_STORE_POST",
+			Message: "cannot store new post",
+		}
+		c.JSON(500, response)
 		return
 	}
 
 	post.ID = id
 	post.CreatedAt = time.Now().Unix()
 	post.UpdatedAt = time.Now().Unix()
-	c.JSON(201, post)
+	response.Result = true
+	response.Data = post
+	c.JSON(201, response)
 }
 
 func (controller *PostController) Show(c Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	post, err := controller.Service.PostById(id)
+	response := entity.ResponseResult{}
+
 	if err != nil {
+		response.Result = false
 		code := 500
 		error := entity.Error{}
 		if err == sql.ErrNoRows {
@@ -52,8 +64,13 @@ func (controller *PostController) Show(c Context) {
 			error.ErrorName = "CAUGHT_ERROR"
 			error.Message = err.Error()
 		}
-		c.JSON(code, error)
+		response.Data = error
+
+		c.JSON(code, response)
 		return
 	}
-	c.JSON(200, post)
+
+	response.Result = true
+	response.Data = post
+	c.JSON(200, response)
 }

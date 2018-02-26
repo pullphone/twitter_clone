@@ -3,7 +3,7 @@ package service
 import "github.com/pullphone/twitter_clone/entity"
 
 type PostService struct {
-	PostRepository PostRepository
+	PostRepository
 }
 
 func (service *PostService) Add(post entity.Post) (id int64, err error) {
