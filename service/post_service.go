@@ -1,9 +1,12 @@
 package service
 
-import "github.com/pullphone/twitter_clone/entity"
+import (
+	"github.com/pullphone/twitter_clone/entity"
+	"github.com/pullphone/twitter_clone/repository"
+)
 
 type PostService struct {
-	PostRepository
+	PostRepository repository.PostRepository
 }
 
 func (service *PostService) Add(post entity.Post) (id int64, err error) {
@@ -16,7 +19,7 @@ func (service *PostService) PostById(id int64) (post entity.Post, err error) {
 	return
 }
 
-type PostRepository interface {
-	Store(entity.Post) (int64, error)
-	FindById(int64) (entity.Post, error)
+func (service *PostService) Posts() (posts []entity.Post, err error) {
+	posts, err = service.PostRepository.FindAll()
+	return
 }

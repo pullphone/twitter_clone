@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/pullphone/twitter_clone/service"
-	"github.com/pullphone/twitter_clone/repository"
 	"github.com/pullphone/twitter_clone/entity"
 	"strconv"
 	"time"
@@ -13,17 +13,7 @@ type PostController struct {
 	Service service.PostService
 }
 
-func NewPostController(sqlHandler repository.SqlHandler) *PostController {
-	return &PostController{
-		Service: service.PostService{
-			PostRepository: &repository.PostRepository{
-				SqlHandler: sqlHandler,
-			},
-		},
-	}
-}
-
-func (controller *PostController) Create(c Context) {
+func (controller *PostController) Post(c *gin.Context) {
 	post := entity.Post{}
 	response := entity.ResponseResult{}
 
@@ -39,7 +29,7 @@ func (controller *PostController) Create(c Context) {
 		return
 	}
 
-	post.ID = id
+	post.ID = strconv.FormatInt(id, 10)
 	post.CreatedAt = time.Now().Unix()
 	post.UpdatedAt = time.Now().Unix()
 	response.Result = true
@@ -47,7 +37,7 @@ func (controller *PostController) Create(c Context) {
 	c.JSON(201, response)
 }
 
-func (controller *PostController) Show(c Context) {
+func (controller *PostController) Get(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
 	post, err := controller.Service.PostById(id)
 	response := entity.ResponseResult{}
@@ -55,16 +45,16 @@ func (controller *PostController) Show(c Context) {
 	if err != nil {
 		response.Result = false
 		code := 500
-		error := entity.Error{}
+		errorEnt := entity.Error{}
 		if err == sql.ErrNoRows {
 			code = 404
-			error.ErrorName = "NOT_FOUND_POSTS"
-			error.Message = "not found posts"
+			errorEnt.ErrorName = "NOT_FOUND_POSTS"
+			errorEnt.Message = "not found posts"
 		} else {
-			error.ErrorName = "CAUGHT_ERROR"
-			error.Message = err.Error()
+			errorEnt.ErrorName = "CAUGHT_ERROR"
+			errorEnt.Message = err.Error()
 		}
-		response.Data = error
+		response.Data = errorEnt
 
 		c.JSON(code, response)
 		return
@@ -72,5 +62,24 @@ func (controller *PostController) Show(c Context) {
 
 	response.Result = true
 	response.Data = post
+	c.JSON(200, response)
+}
+
+func (controllter *PostController) GetAll(c *gin.Context) {
+	posts, err := controllter.Service.Posts()
+	response := entity.ResponseResult{}
+
+	if err != nil || len(posts) < 1 {
+		response.Result = false
+		response.Data = entity.Error{
+			ErrorName: "NOT_FOUND_POSTS",
+			Message: "not posted yet",
+		}
+		c.JSON(404, response)
+		return
+	}
+
+	response.Result = true
+	response.Data = gin.H{"list": posts}
 	c.JSON(200, response)
 }

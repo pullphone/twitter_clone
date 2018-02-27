@@ -1,8 +1,8 @@
 package entity
 
 type Post struct {
-	ID			int64
-	Text		string
-	UpdatedAt	int64
-	CreatedAt	int64
+	ID			string	`json:"id"`
+	Text		string	`json:"text"`
+	UpdatedAt	int64	`json:"updated_at"`
+	CreatedAt	int64	`json:"created_at"`
 }

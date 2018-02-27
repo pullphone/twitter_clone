@@ -2,42 +2,47 @@ package repository
 
 import (
 	"github.com/pullphone/twitter_clone/entity"
-	"time"
-	"database/sql"
+	"github.com/pullphone/twitter_clone/dao"
+	"strconv"
 )
 
 type PostRepository struct {
-	SqlHandler
+	Dao dao.PostDao
 }
 
 func (repo *PostRepository) Store(p entity.Post) (id int64, err error) {
-	result, err := repo.Execute("INSERT INTO posts (text, created_at) VALUES (?, CURRENT_TIMESTAMP)", p.Text)
-	if err != nil {
-		return
-	}
-
-	id, err = result.LastInsertId()
+	id, err = repo.Dao.Insert(p.Text)
 	return
 }
 
 func (repo *PostRepository) FindById(id int64) (post entity.Post, err error) {
-	rows, err := repo.Query("SELECT * FROM posts WHERE id = ?", id)
+	row, err := repo.Dao.Get(id)
 	if err != nil {
 		return
 	}
 
-	var id2 int64
-	var text string
-	var utime time.Time
-	var ctime time.Time
-	rows.Next()
-	if err = rows.Scan(&id2, &text, &utime, &ctime); err != nil {
-		return post, sql.ErrNoRows
+	post = parseEntity(row)
+	return
+}
+
+func (repo *PostRepository) FindAll() (posts []entity.Post, err error) {
+	rows, err := repo.Dao.GetList()
+	if err != nil {
+		return
 	}
 
-	post.ID = id2
-	post.Text = text
-	post.UpdatedAt = utime.Unix()
-	post.CreatedAt = ctime.Unix()
+	for _, row := range rows {
+		post := parseEntity(row)
+		posts = append(posts, post)
+	}
 	return
+}
+
+func parseEntity(row dao.Post) (entity.Post) {
+	return entity.Post{
+		ID: strconv.FormatInt(row.ID, 10),
+		Text: row.Text,
+		UpdatedAt: row.UpdatedAt.Unix(),
+		CreatedAt: row.CreatedAt.Unix(),
+	}
 }

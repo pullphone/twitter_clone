@@ -1,6 +1,6 @@
 package entity
 
 type ResponseResult struct {
-	Result bool
-	Data interface{}
+	Result 	bool		`json:"result"`
+	Data 	interface{}	`json:"data"`
 }
