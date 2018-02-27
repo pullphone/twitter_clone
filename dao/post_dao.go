@@ -6,11 +6,24 @@ import (
 	"database/sql"
 )
 
-type PostDao struct {
+type PostDao interface {
+	Insert(text string) (id int64, err error)
+	Get(targetId int64) (postRow Post, err error)
+	GetList() (postRows []Post, err error)
 }
 
-func (dao *PostDao) Insert(text string) (id int64, err error) {
-	result, err := infrastructure.DBExecute("INSERT INTO posts (text, created_at) VALUES (?, CURRENT_TIMESTAMP)", text)
+type postDao struct {
+	db infrastructure.DB
+}
+
+func NewPostDao() *postDao {
+	return &postDao{
+		db: infrastructure.GetDatabase("default"),
+	}
+}
+
+func (dao *postDao) Insert(text string) (id int64, err error) {
+	result, err := dao.db.Execute("INSERT INTO posts (text, created_at) VALUES (?, CURRENT_TIMESTAMP)", text)
 	if err != nil {
 		return
 	}
@@ -19,8 +32,8 @@ func (dao *PostDao) Insert(text string) (id int64, err error) {
 	return
 }
 
-func (dao *PostDao) Get(targetId int64) (post Post, err error) {
-	rows, err := infrastructure.DBQuery("SELECT * FROM posts WHERE id = ?", targetId)
+func (dao *postDao) Get(targetId int64) (post Post, err error) {
+	rows, err := dao.db.Query("SELECT * FROM posts WHERE id = ?", targetId)
 	defer rows.Close()
 	if err != nil {
 		return post, err
@@ -35,8 +48,8 @@ func (dao *PostDao) Get(targetId int64) (post Post, err error) {
 	return
 }
 
-func (dao *PostDao) GetList() (posts []Post, err error) {
-	rows, err := infrastructure.DBQuery("SELECT * FROM posts")
+func (dao *postDao) GetList() (posts []Post, err error) {
+	rows, err := dao.db.Query("SELECT * FROM posts")
 	defer rows.Close()
 	if err != nil {
 		return posts, err

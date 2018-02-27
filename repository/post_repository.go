@@ -7,16 +7,16 @@ import (
 )
 
 type PostRepository struct {
-	Dao dao.PostDao
+	PostDao dao.PostDao
 }
 
 func (repo *PostRepository) Store(p entity.Post) (id int64, err error) {
-	id, err = repo.Dao.Insert(p.Text)
+	id, err = repo.PostDao.Insert(p.Text)
 	return
 }
 
 func (repo *PostRepository) FindById(id int64) (post entity.Post, err error) {
-	row, err := repo.Dao.Get(id)
+	row, err := repo.PostDao.Get(id)
 	if err != nil {
 		return
 	}
@@ -26,7 +26,7 @@ func (repo *PostRepository) FindById(id int64) (post entity.Post, err error) {
 }
 
 func (repo *PostRepository) FindAll() (posts []entity.Post, err error) {
-	rows, err := repo.Dao.GetList()
+	rows, err := repo.PostDao.GetList()
 	if err != nil {
 		return
 	}

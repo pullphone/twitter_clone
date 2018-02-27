@@ -10,7 +10,7 @@ import (
 )
 
 type PostController struct {
-	Service service.PostService
+	postService service.PostService
 }
 
 func (controller *PostController) Post(c *gin.Context) {
@@ -18,7 +18,7 @@ func (controller *PostController) Post(c *gin.Context) {
 	response := entity.ResponseResult{}
 
 	c.Bind(&post)
-	id, err := controller.Service.Add(post)
+	id, err := controller.postService.Add(post)
 	if err != nil {
 		response.Result = false
 		response.Data = entity.Error{
@@ -39,7 +39,7 @@ func (controller *PostController) Post(c *gin.Context) {
 
 func (controller *PostController) Get(c *gin.Context) {
 	id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-	post, err := controller.Service.PostById(id)
+	post, err := controller.postService.GetById(id)
 	response := entity.ResponseResult{}
 
 	if err != nil {
@@ -66,7 +66,7 @@ func (controller *PostController) Get(c *gin.Context) {
 }
 
 func (controllter *PostController) GetAll(c *gin.Context) {
-	posts, err := controllter.Service.Posts()
+	posts, err := controllter.postService.GetAll()
 	response := entity.ResponseResult{}
 
 	if err != nil || len(posts) < 1 {

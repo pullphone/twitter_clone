@@ -2,11 +2,14 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pullphone/twitter_clone/service"
 )
 
 var Router *gin.Engine
 
-var postController = &PostController{}
+var postController = &PostController{
+	postService: service.NewPostService(),
+}
 
 func init() {
 	Router = gin.Default()
